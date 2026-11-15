@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sondar · O mapa aberto das empresas de óleo e gás</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--navy:#0B2545;--navy2:#123459;--teal:#13A89E;--teal-d:#0B6E66;--teal-l:#DDF3F1;--teal-xl:#F0FAF9;--amber:#F2A93B;--amber-l:#FDF0DC;--amber-t:#7A4E07;--ink:#14202E;--muted:#5B6B7B;--soft:#AFC2D6;--border:#E2E7ED;--bg:#F5F7FA;--white:#fff;--grey:#A9B4BF;--grey-l:#EEF1F5;--map:#0F1E2E;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font:inherit;color:inherit}
+.wrap{max-width:1344px;margin:0 auto;padding:0 32px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--teal);text-transform:uppercase}
+.h1{font-size:52px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+.h2{font-size:32px;line-height:1.2;font-weight:800;letter-spacing:-.01em}
+.h3{font-size:18px;font-weight:700}
+.muted{color:var(--muted)}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:10px;font-weight:600;border:1px solid var(--border);background:#fff;transition:.15s}
+.btn:hover{border-color:var(--grey)}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:var(--navy)}
+.btn.primary:hover{filter:brightness(.96)}
+.btn.ghost{background:transparent;border-color:#3B5677;color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill.navy{background:var(--navy);color:#fff}.pill.teal{background:var(--teal-l);color:var(--teal-d)}.pill.grey{background:var(--grey-l);color:var(--muted)}.pill.amber{background:var(--amber-l);color:var(--amber-t)}
+.chip{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;font-size:13px}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+.notice{background:var(--amber-l);color:var(--amber-t);border-radius:8px;padding:12px 16px;font-size:13px;font-weight:500;text-align:center}
+.link{color:var(--teal);font-weight:600;font-size:13px;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+/* header */
+header.top{position:sticky;top:0;z-index:1000;background:#fff;border-bottom:1px solid var(--border)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;gap:24px}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo b{font-size:23px;font-weight:800;letter-spacing:-.03em;color:var(--navy)}
+.logo.dark b{color:#fff}
+nav.main{display:flex;gap:32px}
+nav.main a{font-size:14px;font-weight:500;color:var(--muted);padding:6px 0;border-bottom:2px solid transparent}
+nav.main a.on{color:var(--navy);font-weight:700;border-color:var(--amber)}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:0 14px;height:40px;width:260px}
+.search input{border:0;background:transparent;outline:0;width:100%;font-size:13px}
+.hdr-right{display:flex;gap:12px;align-items:center}
+
+/* views */
+.view{display:none}.view.on{display:block}
+
+/* home */
+.hero{background:var(--navy);color:#fff;padding:88px 0}
+.hero .wrap{display:grid;grid-template-columns:640px 1fr;gap:64px;align-items:center}
+.hero p.sub{color:var(--soft);font-size:18px;line-height:1.5;margin:24px 0}
+.bigsearch{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:8px 8px 8px 20px;color:var(--ink)}
+.bigsearch input{flex:1;border:0;outline:0;font-size:16px;background:transparent}
+.preview{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 12px 32px rgba(10,25,50,.25);color:var(--ink)}
+.preview .ph{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block}
+.numbers{display:flex;justify-content:space-between;gap:24px;margin-top:40px}
+.numbers>div{flex:1}
+.numbers b{display:block;font-size:40px;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+.numbers b.t{color:var(--teal)}
+.section{padding:72px 0 24px}
+.steps5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:32px}
+.step5{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+.step5 .n{width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;margin-bottom:10px}
+.step5:last-child .n{background:var(--amber);color:var(--navy)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:24px}
+.opt{position:relative;text-align:left;background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px;transition:.15s}
+.opt:hover{border-color:var(--teal)}
+.opt .ic{width:36px;height:36px;border-radius:10px;background:var(--teal-l);color:var(--teal);display:grid;place-items:center;font-size:14px;font-weight:700}
+.opt .top{display:flex;justify-content:space-between;align-items:center}
+.opt .t{font-weight:600;font-size:16px}.opt .c{font-size:12px;font-weight:500;color:var(--teal)}.opt .d{font-size:13px;color:var(--muted)}.opt .k{font-size:13px;font-weight:600;color:var(--navy)}
+.opt.sel{border:2px solid var(--teal);background:var(--teal-xl);padding:19px}
+.opt.sel .ic{background:var(--teal);color:#fff}
+.opt.off{background:var(--grey-l);cursor:not-allowed}
+.opt.off:hover{border-color:var(--border)}
+.opt.off .t,.opt.off .c,.opt.off .d,.opt.off .k{color:var(--grey)}
+.opt.off .ic{background:var(--border);color:var(--grey)}
+.trust{background:#fff;padding:64px 0;margin-top:56px}
+.trust .wrap{display:grid;grid-template-columns:420px 1fr;gap:48px;align-items:center}
+.trust .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.trust .cols>div{background:var(--bg);border-radius:14px;padding:24px}
+footer{background:var(--navy);color:var(--soft);padding:40px 0}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px}
+footer small{display:block;color:#7F95AD;font-size:12px}
+
+/* wizard */
+.stepper{background:#fff;border-bottom:1px solid var(--border)}
+.stepper .wrap{display:flex;align-items:center;gap:12px;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+.stp{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--grey);cursor:default}
+.stp .b{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:grid;place-items:center;font-size:13px;font-weight:700;background:#fff}
+.stp.done{color:var(--ink);cursor:pointer}.stp.done .b{background:var(--teal);border-color:var(--teal);color:#fff}
+.stp.cur{color:var(--navy);font-weight:700}.stp.cur .b{background:var(--navy);border-color:var(--navy);color:#fff}
+.stp-line{width:48px;height:2px;background:var(--border)}.stp-line.done{background:var(--teal)}
+.wz{display:grid;grid-template-columns:1fr 340px;gap:32px;padding-top:36px;padding-bottom:56px}
+.wz .opts{grid-template-columns:repeat(3,1fr)}
+.side{position:sticky;top:96px;align-self:start;display:flex;flex-direction:column;gap:14px}
+.side .srow .k{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between}
+.side .srow .v{font-weight:600}
+.side hr{border:0;border-top:1px solid var(--border)}
+.side .res{font-size:44px;font-weight:800;color:var(--teal);line-height:1}
+.side .res.txt{font-size:22px;color:var(--navy)}
+.grp{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:20px}
+.grp .gh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tg{display:flex;align-items:center;gap:14px;padding:10px 0;border-top:1px solid var(--border)}
+.sw{width:40px;height:22px;border-radius:11px;background:var(--teal);position:relative;flex:none}
+.sw:after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.tg .x{flex:1}.tg .x b{font-size:14px;font-weight:600;display:block}.tg .x span{font-size:13px;color:var(--muted)}
+.lock{font-size:12px;color:var(--grey);font-weight:500;white-space:nowrap}
+
+/* painel */
+.recorte{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:24px}
+.recorte .pp{padding:5px 10px;border-radius:14px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:500}
+.ptitle{display:flex;justify-content:space-between;align-items:flex-end;margin:16px 0 20px;gap:16px}
+.resumo{display:flex;align-items:center;gap:40px}
+.vbar{width:440px;flex:none}
+.vbar .bar{display:flex;justify-content:space-between;align-items:center;background:var(--teal);color:#fff;border-radius:10px;padding:12px 20px;margin-top:8px}
+.vbar .bar b{font-size:20px;font-weight:800}
+.funil{flex:1;display:flex;justify-content:space-between;text-align:center}
+.funil b{display:block;font-size:26px;font-weight:800;color:var(--navy)}
+.funil .t b{color:var(--teal)}
+.funil span{font-size:12px;color:var(--muted)}
+.views{display:grid;grid-template-columns:648px 1fr;gap:24px;margin-top:24px;align-items:stretch}
+.rk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.seg{display:flex;background:var(--grey-l);border-radius:10px;padding:3px;gap:2px}
+.seg button{padding:6px 12px;border-radius:8px;font-size:13px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.rk-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px;font-size:13px}
+.rk-tools select{border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:#fff;font-weight:600}
+.row{display:flex;align-items:center;gap:14px;padding:12px 12px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;transition:background .12s}
+.row:hover,.row.hl{background:var(--teal-xl)}
+.row.ex{opacity:.78}
+.row .chk{width:18px;height:18px;accent-color:var(--teal);flex:none}
+.av{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:#fff;display:grid;place-items:center;flex:none;overflow:hidden;font-weight:700;color:var(--navy);font-size:15px}
+.av img{width:32px;height:32px;object-fit:contain}
+.row.ex .av{background:var(--grey-l);color:var(--grey)}
+.row.ex .av img{filter:grayscale(1);opacity:.6}
+.row .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.row .l1,.row .l2{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.row .nm{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{height:5px;border-radius:3px;background:var(--grey-l);overflow:hidden}
+.track i{display:block;height:100%;background:var(--teal);border-radius:3px}
+.row.ex .track i{background:var(--grey)}
+.row.hl .track i{background:var(--amber)}
+.row .val{display:flex;gap:8px;align-items:center}
+.row .val b{font-size:20px;font-weight:600}
+.row .sec{font-size:12px;color:var(--muted);white-space:nowrap}
+.empty{padding:32px;text-align:center;color:var(--muted)}
+.mapbox{position:relative;flex:1;min-height:560px;border-radius:12px;overflow:hidden;background:var(--map)}
+#map{position:absolute;inset:0}
+.map-off{position:absolute;inset:0;display:grid;place-items:center;color:var(--soft);text-align:center;padding:24px;font-size:14px}
+.leaflet-container{font-family:Inter,system-ui,sans-serif;background:var(--map)}
+.leaflet-tooltip.tip{border:0;border-radius:10px;padding:8px 10px;box-shadow:0 6px 16px rgba(0,0,0,.3);font-size:12px}
+.tl svg{width:100%;height:auto;display:block}
+.tl .pt{cursor:pointer;transition:r .12s}
+.cmpbar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140%);background:var(--navy);color:#fff;border-radius:14px;padding:12px 12px 12px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 12px 32px rgba(0,0,0,.3);z-index:1500;transition:transform .2s}
+.cmpbar:not(.on){visibility:hidden}.cmpbar.on{transform:translateX(-50%) translateY(0)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,23,43,.45);opacity:0;pointer-events:none;transition:.2s;z-index:2000}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:500px;max-width:100%;background:#fff;z-index:2001;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-6px 0 30px rgba(0,0,0,.25)}
+.drawer:not(.on){box-shadow:none;visibility:hidden}.drawer.on{transform:none}
+.dtop{background:var(--navy);color:#fff;padding:24px 28px}
+.dtop .r1{display:flex;justify-content:space-between;align-items:center}
+.dtop .x{color:var(--soft);font-size:22px;line-height:1}
+.dtop .id{display:flex;gap:16px;align-items:center;margin-top:14px}
+.dtop .av{width:64px;height:64px;border:0}
+.dtop .av img{width:42px;height:42px}
+.dtop h2{font-size:26px;font-weight:800;letter-spacing:-.01em}
+.dbody{flex:1;overflow:auto;padding:22px 28px;display:flex;flex-direction:column;gap:20px}
+.blk h4{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;gap:16px;font-size:13px;padding:3px 0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{font-weight:500;text-align:right}
+.dact{display:flex;justify-content:flex-end;gap:12px;padding:16px 28px;border-top:1px solid var(--border)}
+
+/* modal */
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:2100;background:rgba(10,23,43,.55);padding:24px}
+.modal.on{display:grid}
+.modal .box{background:#fff;border-radius:18px;max-width:1000px;width:100%;max-height:90vh;overflow:auto;padding:28px}
+.cmp{width:100%;border-collapse:collapse;margin-top:16px;font-size:14px}
+.cmp th,.cmp td{padding:12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.cmp th{width:200px;color:var(--muted);font-weight:500;font-size:13px}
+.toast{position:fixed;left:50%;top:88px;transform:translateX(-50%) translateY(-20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:3000}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* metodologia */
+.mhero{background:var(--navy);color:#fff;padding:56px 0}
+.mgrid{display:grid;grid-template-columns:1fr 460px;gap:24px;margin-top:24px}
+.fbar{display:flex;gap:20px;align-items:center;margin-top:14px}
+.fbar b{width:80px;font-size:30px;font-weight:800;color:var(--navy)}
+.fbar .tr{height:16px;border-radius:5px;background:var(--grey-l);overflow:hidden}
+.fbar .tr i{display:block;height:100%;background:var(--navy);border-radius:5px}
+.exrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border);font-size:14px}
+.lims{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:16px}
+.lims>div{background:var(--bg);border-radius:12px;padding:18px}
+
+@media (max-width:1100px){
+ .hero .wrap,.trust .wrap,.views,.mgrid,.wz{grid-template-columns:1fr}
+ .steps5,.lims,.trust .cols{grid-template-columns:1fr 1fr}
+ .wz .opts{grid-template-columns:1fr 1fr}
+ nav.main{display:none}
+ .resumo{flex-direction:column;align-items:stretch}.vbar{width:auto}
+ .side{position:static}
+}
+@media (max-width:640px){.wrap{padding:0 16px}.h1{font-size:36px}.search{display:none}.numbers,.funil{flex-wrap:wrap}.steps5,.lims,.trust .cols,.wz .opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="logo" data-go="#inicio"><span id="mk-l"></span><b>Sondar</b></div>
+  <nav class="main">
+    <a href="#inicio" data-nav="inicio">Início</a>
+    <a href="#explorar/1" data-nav="explorar">Explorar</a>
+    <a href="#painel" data-nav="painel">Painel</a>
+    <a href="#metodologia" data-nav="metodologia">Metodologia</a>
+  </nav>
+  <div class="hdr-right">
+    <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#5B6B7B" stroke-width="2"/><path d="m20 20-4-4" stroke="#5B6B7B" stroke-width="2" stroke-linecap="round"/></svg><input id="q-top" placeholder="Buscar empresa ou CNPJ"></label>
+    <a class="btn primary" href="#explorar/1">Explorar dados</a>
+  </div>
+</div></header>
+
+<!-- INÍCIO -->
+<main id="v-inicio" class="view">
+  <section class="hero"><div class="wrap">
+    <div>
+      <div class="eyebrow">Dados abertos da Receita Federal · referência maio/2026</div>
+      <h1 class="h1" style="margin-top:20px">O mapa aberto das empresas de óleo e gás do Rio de Janeiro</h1>
+      <p class="sub">Do cadastro bruto de CNPJs a um painel claro: encontre, compare e localize as empresas que movem a perfuração offshore na cidade.</p>
+      <form class="bigsearch" id="f-hero"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#5B6B7B" stroke-width="2"/><path d="m20 20-4-4" stroke="#5B6B7B" stroke-width="2" stroke-linecap="round"/></svg><input id="q-hero" placeholder="Busque por empresa, CNPJ ou bairro"><button class="btn primary" type="submit">Buscar</button></form>
+      <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap"><a class="btn primary" href="#explorar/1">Começar a explorar →</a><a class="btn ghost" href="#metodologia">Como os dados são obtidos</a></div>
+    </div>
+    <div class="preview">
+      <div class="ph"><div><div style="font-weight:700">Drilling Contractors · Rio de Janeiro</div><div class="muted" style="font-size:12px">Ordenado por tempo de registro</div></div><div style="font-size:12px;font-weight:600;color:var(--teal)"><span class="dot"></span> 9 ativas</div></div>
+      <div id="preview-rows"></div>
+      <a href="#painel" style="display:block;text-align:center;padding:14px;font-size:13px;font-weight:600;color:var(--teal)">Ver as 9 empresas →</a>
+    </div>
+  </div></section>
+  <div class="wrap"><div class="card numbers">
+    <div><b>240</b><span class="muted">registros analisados na CNAE 09.10-6/00</span></div>
+    <div><b>106</b><span class="muted">empresas qualificadas pela curadoria</span></div>
+    <div><b>21</b><span class="muted">drilling contractors identificadas</span></div>
+    <div><b class="t">9</b><span class="muted">empresas ativas exibidas no painel</span></div>
+  </div></div>
+  <section class="section"><div class="wrap">
+    <div class="eyebrow">Como funciona</div><h2 class="h2" style="margin-top:8px">Do cadastro nacional às empresas certas, em cinco filtros</h2>
+    <div class="steps5">
+      <a class="step5" href="#explorar/1"><div class="n">1</div><b>Setor</b><div class="muted" style="font-size:13px">Petróleo e gás natural</div></a>
+      <a class="step5" href="#explorar/2"><div class="n">2</div><b>Atividade</b><div class="muted" style="font-size:13px">CNAE 09.10-6/00 · apoio à extração</div></a>
+      <a class="step5" href="#explorar/3"><div class="n">3</div><b>Localização</b><div class="muted" style="font-size:13px">Rio de Janeiro · capital</div></a>
+      <a class="step5" href="#explorar/4"><div class="n">4</div><b>Critérios cadastrais</b><div class="muted" style="font-size:13px">Ativas, matrizes, CNAE principal</div></a>
+      <a class="step5" href="#explorar/5"><div class="n">5</div><b>Categoria operacional</b><div class="muted" style="font-size:13px">Drilling Contractors</div></a>
+    </div>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="eyebrow">Categorias do setor</div><h2 class="h2" style="margin-top:8px">Comece pelas drilling contractors</h2>
+    <div class="opts" id="home-cats"></div>
+  </div></section>
+  <section class="trust"><div class="wrap">
+    <div><div class="eyebrow">Dados abertos e verificáveis</div><h2 class="h2" style="font-size:28px;margin:12px 0 20px">Cada número tem origem pública e pode ser refeito por qualquer pessoa</h2><a class="btn" href="#metodologia">Ler a metodologia →</a></div>
+    <div class="cols">
+      <div><b>Fonte oficial</b><p class="muted" style="font-size:14px;margin-top:8px">Cadastro Nacional da Pessoa Jurídica, publicado pela Receita Federal do Brasil.</p></div>
+      <div><b>Critérios explícitos</b><p class="muted" style="font-size:14px;margin-top:8px">Filtros por CNAE, situação cadastral, tipo de estabelecimento e município, todos documentados.</p></div>
+      <div><b>Curadoria declarada</b><p class="muted" style="font-size:14px;margin-top:8px">Exclusões manuais registradas com o motivo de cada uma.</p></div>
+    </div>
+  </div></section>
+</main>
+
+<!-- EXPLORAR -->
+<main id="v-explorar" class="view">
+  <div class="stepper"><div class="wrap" id="stepper"></div></div>
+  <div class="wrap wz">
+    <div id="wz-main"></div>
+    <aside class="card side" id="wz-side"></aside>
+  </div>
+</main>
+
+<!-- PAINEL -->
+<main id="v-painel" class="view"><div class="wrap" style="padding-bottom:56px">
+  <div class="recorte"><span class="muted" style="font-size:13px;font-weight:600">Recorte:</span>
+    <span class="pp">Petróleo e gás</span><span class="pp">CNAE 09.10-6/00</span><span class="pp">Rio de Janeiro</span><span class="pp">Ativas · matrizes</span><span class="pp">Drilling Contractors</span>
+    <a class="link" href="#explorar/1">Editar filtros</a></div>
+  <div class="ptitle">
+    <div><h1 class="h2" style="font-size:30px">Drilling Contractors no Rio de Janeiro</h1><div class="muted">Empresas de perfuração com CNPJ ativo, matriz no município e operação verificada</div></div>
+    <a class="link" href="#metodologia">ⓘ Como chegamos a esses números</a>
+  </div>
+  <div class="card resumo">
+    <div class="vbar"><div class="muted" style="font-size:13px;font-weight:500">Verificação concluída</div><div class="bar"><b>100%</b><span style="font-weight:600;font-size:14px">21 de 21 drilling contractors</span></div></div>
+    <div class="funil">
+      <div><span>Registros na CNAE</span><b>240</b><span>base</span></div>
+      <div><span>Qualificadas</span><b>106</b><span>44% de 240</span></div>
+      <div><span>Drilling contractors</span><b>21</b><span>20% de 106</span></div>
+      <div class="t"><span>Ativas</span><b>9</b><span>43% de 21</span></div>
+      <div><span>Excluídas</span><b>12</b><span>57% de 21</span></div>
+    </div>
+  </div>
+  <div class="views">
+    <div class="card">
+      <div class="rk-head"><div class="h3">Ranking</div><div class="seg" id="seg"><button data-v="ativas" class="on">Ativas (9)</button><button data-v="todas">Identificadas (21)</button></div></div>
+      <div class="rk-tools">
+        <label class="search" style="width:220px;height:34px"><input id="q-panel" placeholder="Filtrar por nome, CNPJ ou bairro"></label>
+        <label class="muted">Ordenar por <select id="sort"><option value="idade">Tempo de registro</option><option value="nome">Ordem alfabética</option><option value="bairro">Bairro</option></select></label>
+      </div>
+      <div id="rows"></div>
+      <p class="muted" style="font-size:11px;margin-top:12px">Tempo de registro: contado a partir da data de abertura do CNPJ na Receita Federal. Pode não corresponder ao tempo de atuação da marca no Brasil. Marque as caixas para comparar até 3 empresas.</p>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div class="h3">Onde estão</div><button class="btn" style="padding:6px 12px;font-size:13px" id="fit">Reenquadrar</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="chips"></div>
+      <div class="mapbox"><div id="map"></div></div>
+      <div class="muted" style="font-size:11px">Localização aproximada das matrizes a partir do endereço cadastral.</div>
+    </div>
+  </div>
+  <div class="card tl" style="margin-top:24px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><div class="h3">Quando cada empresa foi registrada</div><div class="muted" style="font-size:13px">Empresas acumuladas por ano de abertura do CNPJ · passe o mouse nos pontos</div></div>
+    <div id="tl"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:20px;font-size:12px;gap:16px;flex-wrap:wrap"><span class="muted">Fonte: Dados Abertos CNPJ, Receita Federal do Brasil, maio/2026 · Curadoria e verificação de sites pelo pesquisador</span><a class="link" id="csv">Exportar dados da visão atual (CSV)</a></div>
+</div></main>
+
+<!-- METODOLOGIA -->
+<main id="v-metodologia" class="view">
+  <section class="mhero"><div class="wrap"><div class="eyebrow">Metodologia</div><h1 class="h1" style="font-size:40px;margin:14px 0">Como os dados chegam até aqui</h1><p style="color:var(--soft);font-size:17px;max-width:760px">Todo o conjunto parte de uma fonte pública e passa por filtros técnicos e por uma curadoria documentada. Qualquer pessoa pode refazer o caminho.</p></div></section>
+  <div class="wrap" style="padding-bottom:56px">
+    <div class="mgrid">
+      <div class="card"><div class="h3">Por que dados abertos</div>
+        <div style="margin-top:14px"><b>Abrangência</b><p class="muted" style="font-size:14px">O CNPJ reúne todas as pessoas jurídicas formalmente constituídas no país, sem o viés de seleção de diretórios comerciais.</p></div>
+        <div style="margin-top:12px"><b>Natureza pública e auditável</b><p class="muted" style="font-size:14px">A base é oficial, atualizada mensalmente pela Receita Federal e acessível a qualquer pessoa.</p></div>
+        <div style="margin-top:12px"><b>Filtros precisos</b><p class="muted" style="font-size:14px">O volume permite aplicar critérios técnicos inviáveis por consulta manual.</p></div>
+        <p style="font-size:12px;color:var(--grey);margin-top:14px">Bases comerciais do setor, como Wood Mackenzie e Rystad Energy, não foram usadas por restrição de acesso e para manter o processo reproduzível.</p></div>
+      <div class="card"><div class="h3">A fonte</div><div id="fonte" style="margin-top:10px"></div></div>
+    </div>
+    <div class="card" style="margin-top:24px"><div class="h3">O funil de qualificação</div><div id="funil"></div></div>
+    <div class="mgrid">
+      <div class="card"><div class="h3">As 12 drilling contractors que ficaram de fora</div><div id="exlist" style="margin-top:10px"></div></div>
+      <div class="card"><div class="h3">As 106 empresas qualificadas</div><div id="catlist" style="margin-top:6px"></div><div class="notice" style="margin-top:16px">Categorias qualificadas, fora do recorte desta versão</div></div>
+    </div>
+    <div class="card" style="margin-top:24px"><div class="h3">Limites da informação</div><div class="lims">
+      <div><b>Situação cadastral</b><p class="muted" style="font-size:13px;margin-top:6px">Ativa na Receita Federal não garante operação efetiva.</p></div>
+      <div><b>Classificação por CNAE</b><p class="muted" style="font-size:13px;margin-top:6px">O autorregistro admite variações; subsidiárias podem usar códigos genéricos.</p></div>
+      <div><b>Data de registro</b><p class="muted" style="font-size:13px;margin-top:6px">É a abertura do CNPJ no Brasil, não o tempo de atuação da marca.</p></div>
+      <div><b>Presença digital</b><p class="muted" style="font-size:13px;margin-top:6px">Critério indireto: um site pode estar fora do ar sem encerramento.</p></div>
+    </div></div>
+  </div>
+</main>
+
+<footer><div class="wrap"><div class="logo dark" data-go="#inicio"><span id="mk-d"></span><b>Sondar</b></div><div style="text-align:right"><div style="font-size:13px;font-weight:500">Projeto acadêmico · PPDESDI/UERJ · Design de Informação 2026.2</div><small>Fonte: Dados Abertos CNPJ, Receita Federal do Brasil (maio/2026)</small></div></div></footer>
+
+<!-- detalhe -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+<!-- comparação -->
+<div class="cmpbar" id="cmpbar"><span id="cmpcount"></span><button class="btn" style="padding:8px 14px;background:transparent;color:#fff;border-color:#3B5677" id="cmpclear">Limpar</button><button class="btn primary" style="padding:8px 14px" id="cmpgo">Comparar</button></div>
+<div class="modal" id="modal"><div class="box" id="modalbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>window.LOGOS={
+constellation:'data:image/png;base64,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',
+dolphin:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAJ1BMVEUAk4MAk4MAk4MAk4MAk4P///8AkYE3qJvr9/ZpvbOy3tnS7OmPzcay1g6BAAAABHRSTlMPs/ZtXQ1tWwAAA9hJREFUeJztm9tyqzAMRUnj4Ov/f+/RxQbbgYAxjed05D60YTrsJVneEu0wTdP0fPyoAevn8ZxojZFnBNJXwwCI4DlOHgmekICh6zENTQCkYBqrr5QACIAACIAACIAACIAACIAACIAACMDfA5iL9UsAOzfPLmv4ilduB1huWt6cPmltbXDOeec9fAvWanWA0AoAt9Og4UEAbs6yHDhdNuZVLGOcVR/T0AaAMm7VMC5QpiFw0F5FEQ+T4OkiM9wDoIN/VcuFkMQNSEPaNaz46zqmxcFO3AGgnan1s7BJW+Xln/YG0rGbhDYAG/wmgkFxLk+UmavTCJnDzdo8E61FWNRAVPdRfY2afsStsGkFqISlansAKKNl8HzfRZxqEgqDihDrkBeC4i7VW9HsA5RQU8iv6ipV3X6tYDV0AVAWbCx7l6krZYPbLpFyOZ0TXACAON0in8Q3amM3CUUO2rcg7kC0l+SBR+roEeTOASv2egZAjmrQ+CgPu/5B3bArgqy10Z3qs9hoxTOH74MmdTKZHe1SOD+lxS2bAFL43GDg07YvGc+NUG8J1qsBAMPHcD3bzmbwZMjUDSxV6PFEch4AJGmzXZR/C567AffG2CZPrNMAkHAfz1BKRb5wPEBNzd3P6uPY2wBmFTj80gkXcZ5UHB/QwzGoGQBjpuInG8ijj52IQ3+9jsaPiwDsfXjrUj71wcwHfZv82Qzg6TNQV3knNDHzczYlGPT5Jv0zAFx+EJrK/D514eI0+vO11wLA+jofyDh4RfIZ0/7k1wHA5R90tvk+6GhxuRngFrXrHwJQ7zdB6UJ+jm0pO47GXpE/BID4aWuX2vP8nJG64uoFuq34zwKgPkyTfo1+5rG3MiPXXn1nAHD/odyXMx7SCFRZsbmuf5AB1E9afnVYQsKma7r1PwFw/ItIPOMxfPRAbX23/scMWND3ZfbJlU1yIR6Ou/T3AeiQp6fO5YjTVZeGDWu69XcBILylzpb+NuOuuPQYxhbl+/T3ARbnWfsbpj/r9QTQq78DMK/6LnMYWz1XQZHaTv09gGR9OIKkgLW1hdtjBsI1/z0EQAN862+2mjUAIPRuwDZAevhMxkvX8O8utdrGpTsA0gHwxYbrM0P+TQBcAOV4cXbMvwOACuBqe+8H4ALw9mJ7vwEAC6DTXnsAsADMDafrKsA8h+/qVwBgwcZ/q/w2ALAFfFm/AlDB32Bu1wGg3X5z+98AoN99Xb8C+LZ6DTBA/w/+31AABEAABEAABEAABEAABEAABEAABOD/Axj+0uvw136Hv/g8NAXx5fPBL78Pe/1f0ev//wDeIhRgdBPnAwAAAABJRU5ErkJggg==',
+archer:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAClUlEQVRoge2av2ojMRCHv4SUae4JUiRwXJfOzUHA1eEEUtwTpD8I9yYJXO9nOLDNVYZAGnfu7RR5B5cprrBkZFm7mhlpnT/kB8brRSNpdr5ZzWoNn3pdHZR20OsPjkrsZ9PJS+kc3rVMEej1B0ez6eSl1x/8BG4K53A7m06erMam8AdhvwEurYM7LYDf/qJojc050OsPToE5cOxOrYJjze8l8M2aC4dagyBpz6MJHUdNpb/PgOuob7HUDkT41NJ3q6E1iWN8SmXGSBWBFnxKZcZI5UBH+HiZMFIjpMRnDHxlfYVzMmEkjoARnyEwErY1YSR2wIjPHHhUtFdjpE3iU+BC2HzsSoS/rPGQ6Eq7IoscMOKzgE3kOsNI5IARnz/BcWcYaZJYg88yqjDnrGsfiVQYZR0w4jPytm4yT8CD0FaFUdaBCvh4DRX2YoxEC5ly8UouSDX6SKk1AlZ83NPaVvi7wqjVASM+O3ecYBLVMcoiVDP0XWDUGIGa+Hh1gVGjA7Xw8QomsVD0l8WoFSFlyFfAl1zIXZ/S2iiLUTICRnwe2vDxchhJHchilHTAiE/2DhNMQlrcQQajRoQM+JxLd9hqYrQTgQJ8NNuDz1TCaMeBEnwkxVdQaVbBqCmJNaXzijVq2q1yzTNCY4m95cA+8AkmoXnUbMSoaSHT4LNIddymmhhtOeDu4xp8wNX+xt3lYowOYHP1Tty5e+R7/kvgR3yyCSl3cWJp9ljHwG04ho/Aietoie6FxZmzCT+/3GRTSN0n2mv2WC+dzT/ff4hQzc3avUn9fuCtKXRgFX1rpbGzjJG0SSFkRUljZxkjaeMT7Rm4M3Sa0iPs3lZd0g3RPdB8fG3K6dK/DHi1LWi1xsiN86l96j++2j9yOSUNjgAAAABJRU5ErkJggg==',
+ocyan:'data:image/png;base64,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',
+seadrill:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAJFBMVEVHcEznuDLnuDLnuDLnuDLnuDLnuDLnuDLnuDLnuDLnuDLnuDK7RU0MAAAAC3RSTlMADrwoS/VrpIvU5xLwPqAAAALQSURBVHic7ZvZeoQgDIVldeH937fjaF2QWCEp55vSXKv8wgkkAbru3yTNKGz7tscCKK2hAGoIWADvsABmClAA1QcsgA9YAOuwAGoMUIC3AJAA3mEBzNo+CkDpgAUYAhbAOiyAGQMU4NsDYQBDwAIYhwU4CgACcBoAAIAPQgCq7MU5CJIBMP1g8t86eSBzCGwI42AzXx/i9jkamD/mdBaDvbTPATDLiuae90PkgWwv2AX1YnggiKsAuG54cKm5HzIeFwLozr809f6uH6yTB4gH1Y09qYc9CBIESP3V1Kf1kBIAHyDh2MRYJDxQBIDoWPdiOH055YEiAPSXX9/2W/2F4JQASDvXapNex4J+SGA5JtS1mpv7wcZroCiAIbt3Y6CHSSQgSc8wD00kIrqTQRUAWuOVAO58sQ4AOc9VA0hPyTUBimUglheYQl/UQu0X++LopQr2yYjvif0QSD23cl9026LFM9aU7LTAWBT74mL8fiiWwd4PTE1ect8SBu1zM86DeY4MDgzZWe9mTBlsCKGUgbEuXiB0SQVCRAa7TY+y3rPJyGC37CoI3xevDHTGmSQQHYTVqIwzaawpmbbn/SCtgsXuUv8KQ/CsCLS0Ly7CjDLYewCgrUtPRPmlUCU3FU9FU7HQYlS8IMp4YHloJCEATmAmEJLxQlNuUBpV1rKNF5b37LCck5jkrHWUFQtgFErNypNTidYZ6flfKVCgSzToIhW6TAcvVKJLtehiNbxcj96wQG/Z0B7oqmxawbft0BuXGVu3xGohu3l9l0L/yuZ1vH1/G1ilY/aaBxiSMuAA2MwjHMkpiwGg8g+xJGTAAJj/JzOHTASOn3uQCX6Uq/QwWzxzVD/OF8+d7R1oVNGU3OCh1ig8avJg86mY2Obh9qMMWr3gsIdHzV5ymS/aYQG+ZdDwVa9VBk1f94NfeHxnFo1feu068LVf/MVn/NXvj7QvNTzHewvcCvEAAAAASUVORK5CYII=',
+odfjell:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAz1BMVEX///8AL2wAPXgAptMARoAAYZcAap8AWI8AK2oALWsAKWkAqNQAos4AgLIAJmgAS4QAUIkAOHT0+vyW2+3n9/vc9PkAksIAjb4AdqkAcaWEmLUAXpYAI2cAVIzU2+WotMjAyNY/XozG6/Sy5PGp2ut9zORHu9sAr9iJ0+lJr9O63etsvdkSmcVkxeI7tdrM5vCPwtplr82bzuI2k71ifKFTpMZkoMG40eFCibEAFGDk7PKpx9k+e6ZMaJGKscpuhKVukrQsTX+Xp8B5n71WgqjYAp+2AAACOElEQVR4nO3XaXOaUBgFYCFXBBcQijuyGZcoiTZiUjHGQPL/f1Pfi840aW2rE/BDe54Zx2V0zuHe1+tYKAAAAAAAAAAAAAAAAMA/y2j4gy9k4DeMS2eb8+vhaHxVvdqrjEeTgXmxdGMwvKkEQZWr8HhCj0bDxiXSzeksaDabAalW7kZD2gC/0eCbcXs3vp3nHT9f3LRaTS6ozK5988Pem/5kNMlzGozp19ZBMBuYx6IMP78CjftljaP41f0nB86Ozv7IfLFs1/aCz8YXCk543vuN+arTabfTBstpBovsCs458dOHtpQWaLdbi0y+7ZHH3JPjH791JMqnBp3aKqvDprtm9klvjDZPvZ7EUYPlNKN4mkLV2p4wiObzU6lXJFSgKD1nedbuVOtva2DYL32tX9o3KEoP2R5yNpPV2P1T/Oatp9Upv1Si+JK0yfqASSxB1ne/2QbDfpU0ptXr/X5aofdy2sScw/BUQbHi5NcKhu2ETBcZ06gBr1DvZH75nB2rglBWvO6Hi4vcZBvrPJ7xBlRBY6/ZX/6PBkLZWrMwcVziJGGsWvSiLpJ9A8beHvOJJ67IGwiKTKmyoqgW3dFznTtU0ItOnj+vtpc24CUOt71DA13vHxmRTEWhXBaOSBdB0Lo5bf47hiNa8rEKSlnc5R/PRV3P+nkVFFXZ5r347yskHo1fWaY5VGS5rFprMXQvF5+yk9CL+dSJsRd23Yv/y+CMyKajwI4ufOkAAAAAAAAAAAAAAAD/h+/B2zb3clJ1CgAAAABJRU5ErkJggg==',
+noble:'data:image/png;base64,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',
+foresea:'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3LTc3Mjc4Nzc3Nzc1ODcvNzc3Ny8rNy0yNzc3Nzc3MDU3LTU3L//AABEIACAAIAMBEQACEQEDEQH/xAAZAAADAAMAAAAAAAAAAAAAAAAABQYDBAf/xAAoEAABAwMEAQIHAAAAAAAAAAABAgMEAAURBhITITFBUSIycZGh0fD/xAAaAQEAAgMBAAAAAAAAAAAAAAAAAwQBAgUG/8QAKBEAAQQBAQUJAAAAAAAAAAAAAQACAxEEoRIhMVFhBRMUIjIzcYHR/9oADAMBAAIRAxEAPwDuNERREURFERREtukqaw5GbhRQ9yqIcWTgND3P96VNEyNwJearVVciSVhaI23fHp1UWpyGuVxDVFyWtS9uUpVgnPp3VsZjQPbC8+ZIS/Z8S6/v9VhZLS7a+bmuEiZybccxJ24z47PnP4qtPO2WqaBS72Jiux72nl181o6l1lYtPyRBusxbEh1nkSEsrX8JJAOQPcGtI4HyC2hWXkVSibdqPT7k5hA1TPlqUsJTHTGdTyqJ6Tk58nAqU40gHDULjRdmPa8F8xI5b9+qtdLwZT0Nx7UFkt0OXzq4m2G0KCW+tvYz3nP6qKQtB8hsLpNw8cb+7bfwFS1ErSXz7Jabk8Hrja4Up1KdgXIjocUE9nGSPHZ+9bNe5vpNLFArHE09ZIT6ZEOz2+O8j5XGoqEKH0IFZMjyKJSgmlaLKKIv/9k=',
+greatwall:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACTklEQVQ4jY2Ty0uUURjGf++Zb8b5nG+mtJBpJHWIoouuEkvaZJiWuaxdi3YFQQs3LlokBAUV0qZ9i+ofKO1CC0HDIMywC0Gl5gXNJB1nHE0/z9tiMkbL6oFncQ6/5+UcznOEdZq7JRWgj8TBETf2ANTXhXSz+hiQ+th5HcnnJX+R7WgIr4w/6ZQgdeKAROKgFs1OoT7oMt2mqKohcur14poBqXYplqC2mGjstClKlLP4HgmCRJOAoulhdBkI78bOjH226cxtXZabm1p01smN0SsS5CxmDhPZCV4F4g8jXiFgUQvqJMG62FSmXIJcUl/jwDkDIA4JCYIJgWb7CGw7hvFcTKQwZ6+QQKIRXejHhMidzqEMwACYrXsTUuBCECQEOnMHU9GKuAWIG8ZUtKLf7iIhckxBGFO8owRAUu3SbFzuO+XVmC1lGK8IWRlAInEk0QaATlxG57+ggUpsehr7dQh/tB+7ICckdZ1B45E0HhgPTDRAIH4YU3YRidblBmSeYUfaWJnowqZ9bIZVDzlqId8Et0O0jvl3PrOPr4IxFDXWEI4fgelPqB3K562krkmThOkwpYfITu5hrs8w+/ApyxOTawoWKk2wuekosf2KW/IWO9aNLnJcAN4crBzIvByv0qWl9cX8oyRcQLS67MW+nlc1DkD6+dD0fyV/She/M9fzYerXMwIjf+E30hRArokBucCKDgJngOQ/gqPAPYzcwK77TL1ONIxvu4ADG4R7cUx9rZ/Orm7Ib4R4u1DtJHe9TiALnATASEOtzXzM538AsCTgVECl1Q8AAAAASUVORK5CYII='
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ===================== Marca =====================
+const MARK=(tile)=>`<svg width="36" height="36" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="15" fill="${tile}"/><path d="M28 0h8v30a4 4 0 0 1-8 0z" fill="#F2A93B"/><circle cx="32" cy="33" r="6" fill="#F2A93B"/><path d="M11 33a21 21 0 0 0 42 0" stroke="#127B76" stroke-width="7" stroke-linecap="round"/><path d="M19 36a13 13 0 0 0 26 0" stroke="#13A89E" stroke-width="7" stroke-linecap="round"/></svg>`;
+document.getElementById('mk-l').innerHTML=MARK('#0B2545');
+document.getElementById('mk-d').innerHTML=MARK('#FFFFFF');
+document.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>location.hash=e.dataset.go);
+
+// ===================== Dados (planilha empresas_qualificadas_drilling_RJ_v3) =====================
+const D=[
+ {id:'constellation',nome:'Constellation',razao:'Serviços de Petróleo Constellation S.A.',cnpj:'30.521.090/0001-27',abertura:'17/03/1980',end:'Av. Presidente Antônio Carlos, 51 · andares 3, 5, 6 e 7',bairro:'Centro',tel:'(21) 3231-2500',site:'theconstellation.com',status:'ativa',lat:-22.9050,lng:-43.1745,grupo:''},
+ {id:'dolphin',nome:'Dolphin Drilling',razao:'Dolphin Drilling Perfuração Brasil Ltda',cnpj:'03.741.603/0001-32',abertura:'07/04/2000',end:'Av. Rio Branco, 43 · sala 2001',bairro:'Centro',tel:'(21) 2276-6200',site:'dolphindrilling.com',status:'ativa',lat:-22.8985,lng:-43.1775,grupo:''},
+ {id:'greatoil',nome:'Great Oil Perfurações',razao:'Great Oil Perfurações Nordeste Ltda',cnpj:'07.498.296/0001-61',abertura:'15/07/2005',end:'Av. João Cabral de Mello Neto, 400 · salas 1503 e 1504',bairro:'Barra da Tijuca',tel:'(21) 3559-9900',site:'',motivo:'Em recuperação judicial',status:'excluida',obs:'',lat:-23.0010,lng:-43.3650,grupo:''},
+ {id:'archer',nome:'Archer',razao:'Archer do Brasil Ltda',cnpj:'07.989.725/0001-01',abertura:'05/05/2006',end:'Av. Presidente Wilson, 231 · salas 1601 e 1802',bairro:'Centro',tel:'(21) 2114-1700',site:'archerwell.com',status:'ativa',lat:-22.9095,lng:-43.1725,grupo:''},
+ {id:'etx',nome:'ETX Perfuração',razao:'ETX Serviços de Perfuração e Sondagem de Petróleo Ltda',cnpj:'08.957.999/0001-73',abertura:'18/07/2007',end:'Av. Almirante Barroso, 63 · sala 702',bairro:'Centro',tel:'(21) 2262-4444',site:'',motivo:'Sem site nem operação',status:'excluida',lat:-22.9075,lng:-43.1755,grupo:''},
+ {id:'scorpion',nome:'Scorpion Offshore',razao:'Scorpion Serviços Offshore Ltda',cnpj:'09.024.591/0001-01',abertura:'20/08/2007',end:'Av. República do Chile, 330 · bloco 1, sala 2901',bairro:'Centro',tel:'(21) 3900-7480',site:'seadrill.com',motivo:'Adquirida pela Seadrill',status:'excluida',obs:'',lat:-22.9100,lng:-43.1795,grupo:'seadrill'},
+ {id:'seadrill',nome:'Seadrill',razao:'Seadrill Serviços de Petróleo Ltda',cnpj:'09.521.059/0001-08',abertura:'04/04/2008',end:'Av. República do Chile, 330 · bloco 1, sala 2901',bairro:'Centro',tel:'(21) 3900-7480',site:'seadrill.com',status:'ativa',lat:-22.9100,lng:-43.1795,grupo:'seadrill'},
+ {id:'odfjell',nome:'Odfjell Drilling',razao:'Odfjell Drilling Brasil Ltda.',cnpj:'13.753.767/0001-33',abertura:'03/06/2011',end:'Rua Siqueira Campos, 43 · sala 801',bairro:'Copacabana',tel:'(21) 96376-115',site:'odfjelldrilling.com',status:'ativa',lat:-22.9665,lng:-43.1860,grupo:'odfjell'},
+ {id:'cosl',nome:'COSL Drilling',razao:'COSL Drilling Brasil Ltda',cnpj:'21.983.415/0001-00',abertura:'04/03/2015',end:'Rua Lauro Müller, 116 · sala 1506',bairro:'Botafogo',tel:'(21) 3046-3933',site:'cnoocinternational.com',status:'ativa',lat:-22.9565,lng:-43.1770,grupo:''},
+ {id:'foresea',nome:'Foresea',razao:'Foresea S.A.',cnpj:'37.964.448/0001-35',abertura:'04/08/2020',end:'Av. Cidade de Lima, 86 · salas 401, 801 e 802',bairro:'Santo Cristo',tel:'(21) 2070-3000',site:'foresea.com',status:'ativa',lat:-22.8955,lng:-43.2010,grupo:'ocyan'},
+ {id:'ocyan',nome:'Ocyan',razao:'Ocyan S.A.',cnpj:'08.091.102/0001-71',abertura:'23/06/2006',end:'Av. Cidade de Lima, 86 · salas 501 e 502',bairro:'Santo Cristo',tel:'(21) 3850-6619',site:'ocyan-sa.com',status:'excluida',motivo:'Atua em serviços de campo',nota:'A Foresea, do mesmo grupo, assumiu a atividade de perfuração. A Ocyan passou a atuar em serviços de campo.',lat:-22.8955,lng:-43.2010,grupo:'ocyan'},
+ {id:'noble',nome:'Noble (NE Drilling)',razao:'NE Drilling do Brasil Serviços de Petróleo Ltda.',cnpj:'39.828.227/0001-65',abertura:'18/11/2020',end:'Rua Lauro Müller, 116 · salas 2503 a 2506',bairro:'Botafogo',tel:'(21) 2127-4210',site:'noblecorp.com',status:'ativa',motivo:'',lat:-22.9565,lng:-43.1770,grupo:'noble'},
+ {id:'pacific',nome:'Pacific Drilling',razao:'Pacific Drilling do Brasil Serviços de Perfuração Ltda.',cnpj:'10.901.128/0001-80',abertura:'05/06/2009',end:'Rua Lauro Müller, 116 · salas 2503 a 2506',bairro:'Botafogo',tel:'(21) 2127-4210',site:'',status:'excluida',motivo:'Incorporada pela Noble',lat:-22.9565,lng:-43.1770,grupo:'noble'},
+ {id:'greatwall',nome:'GreatWall Drilling',razao:'GreatWall Drilling Company do Brasil',cnpj:'63.613.824/0001-57',abertura:'11/11/2025',end:'Av. Graça Aranha, 19 · sala 804',bairro:'Centro',tel:'(21) 8372-9143',site:'www.cnpc.com.cn/en/index.shtml',status:'ativa',motivo:'',lat:-22.9065,lng:-43.1760,grupo:''},
+ {id:'odfjell2',nome:'Odfjell Perfurações',razao:'Odfjell Perfurações e Serviços do Brasil Ltda',cnpj:'12.915.063/0001-57',abertura:'02/08/2010',end:'Rua Siqueira Campos, 43 · sala 801',bairro:'Copacabana',tel:'(21) 96376-115',site:'',status:'excluida',motivo:'Mesmo grupo econômico',lat:-22.9665,lng:-43.1860,grupo:'odfjell'},
+ {id:'odfjell3',nome:'Odfjell Gestão de Perfurações',razao:'Odfjell Gestão de Perfurações do Brasil Ltda.',cnpj:'13.656.804/0001-95',abertura:'17/05/2011',end:'Rua Siqueira Campos, 43 · sala 801',bairro:'Copacabana',tel:'(21) 3550-0860',site:'',status:'excluida',motivo:'Mesmo grupo econômico',lat:-22.9665,lng:-43.1860,grupo:'odfjell'},
+ {id:'seadrill2',nome:'Seadrill Perfuração',razao:'Seadrill Serviços de Perfuração Ltda',cnpj:'37.302.077/0001-26',abertura:'02/06/2020',end:'Av. República do Chile, 330 · bloco 1, sala 2901',bairro:'Centro',tel:'(21) 3900-7480',site:'',status:'excluida',motivo:'Mesmo grupo econômico',lat:-22.9100,lng:-43.1795,grupo:'seadrill'},
+ {id:'enhanced',nome:'Enhanced Drilling',razao:'Enhanced Drilling Services do Brasil Ltda.',cnpj:'11.808.464/0001-45',abertura:'25/03/2010',end:'Av. Presidente Wilson, 231 · salão 503',bairro:'Centro',tel:'(21) 2252-2500',site:'',status:'excluida',motivo:'Sem perfuração direta',lat:-22.9095,lng:-43.1725,grupo:''},
+ {id:'sevan',nome:'Sevan Marine',razao:'Sevan Marine Serviços de Perfuração Ltda',cnpj:'09.655.055/0001-04',abertura:'18/06/2008',end:'Av. República do Chile, 330 · bloco 1, sala 2901',bairro:'Centro',tel:'(21) 3900-7480',site:'',status:'excluida',motivo:'Sem perfuração direta',lat:-22.9100,lng:-43.1795,grupo:''},
+ {id:'delba1',nome:'Delba Baiana',razao:'Comercial Perfuradora Delba Baiana Ltda',cnpj:'15.136.468/0001-85',abertura:'24/04/1973',end:'Rua Visconde de Inhaúma, 50 · grupo 1214',bairro:'Centro',tel:'(21) 2249-1383',site:'',status:'excluida',motivo:'Sem site nem operação',lat:-22.8990,lng:-43.1790,grupo:''},
+ {id:'delba2',nome:'Delba Serviços',razao:'Comercial Perfuradora Delba Serviços Ltda',cnpj:'09.555.147/0001-12',abertura:'08/05/2008',end:'Ladeira de Nossa Senhora, 163 · 5º andar',bairro:'Glória',tel:'(21) 2233-2225',site:'',status:'excluida',motivo:'Sem site nem operação',lat:-22.9235,lng:-43.1770,grupo:''}
+];
+const REGIAO={'Centro':'Centro','Santo Cristo':'Zona Portuária','Botafogo':'Zona Sul','Copacabana':'Zona Sul','Glória':'Zona Sul','Barra da Tijuca':'Zona Oeste'};
+const GRUPOS={seadrill:'Grupo Seadrill',odfjell:'Grupo Odfjell',noble:'Grupo Noble',ocyan:'Grupo Ocyan'};
+const today=new Date();
+D.forEach(d=>{const [dd,mm,yy]=d.abertura.split('/').map(Number);d.date=new Date(yy,mm-1,dd);d.ano=yy;
+  let m=(today.getFullYear()-yy)*12+(today.getMonth()-(mm-1));if(today.getDate()<dd)m--;d.meses=m;d.anos=Math.floor(m/12);
+  d.idade=d.anos>=1?`${d.anos} ${d.anos===1?'ano':'anos'}`:`${m} ${m===1?'mês':'meses'}`;d.regiao=REGIAO[d.bairro]||'Outras';
+  d.logo=(window.LOGOS||{})[d.id]||null;d.ini=d.nome.split(/\s+/).filter(w=>/^[A-Z]/.test(w)).slice(0,2).map(w=>w[0]).join('')||d.nome[0];});
+const ATIVAS=D.filter(d=>d.status==='ativa');
+const MAXM=Math.max(...D.map(d=>d.meses));
+
+// ===================== utilidades =====================
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200);}
+const avatar=d=>`<div class="av">${d.logo?`<img src="${d.logo}" alt="">`:esc(d.ini)}</div>`;
+function rowHTML(d,{check=true}={}){const ex=d.status!=='ativa';const p=Math.max(2,Math.round(d.meses/MAXM*100));
+ return `<div class="row ${ex?'ex':''}" data-id="${d.id}">${check?`<input type="checkbox" class="chk" ${CMP.has(d.id)?'checked':''} title="Comparar" data-c="${d.id}">`:''}${avatar(d)}
+ <div class="body"><div class="l1"><span class="nm">${esc(d.nome)}</span><span class="pill ${ex?'grey':'navy'}">${esc(d.bairro.toUpperCase())}</span></div>
+ <div class="track"><i style="width:${p}%"></i></div>
+ <div class="l2"><span class="val"><b>${d.idade}</b><span class="pill ${ex?'grey':'teal'}">${ex?esc(d.motivo):'Site ativo'}</span></span><span class="sec">Desde ${d.ano}</span></div></div></div>`;}
+
+// ===================== roteamento =====================
+const views=['inicio','explorar','painel','metodologia'];
+function route(){let h=(location.hash||'#inicio').slice(1);let [v,arg]=h.split('/');if(!views.includes(v))v='inicio';
+ views.forEach(x=>$('#v-'+x).classList.toggle('on',x===v));
+ document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===v));
+ closeDrawer();window.scrollTo(0,0);
+ if(v==='explorar')renderWizard(Math.min(5,Math.max(1,+arg||1)));
+ if(v==='painel')renderPainel();
+}
+window.addEventListener('hashchange',route);
+
+// busca global
+function goSearch(q){ST.q=q.trim();$('#q-panel').value=ST.q;ST.view=ST.q?'todas':ST.view;location.hash=='#painel'?renderPainel():location.hash='#painel';}
+$('#q-top').addEventListener('keydown',e=>{if(e.key==='Enter')goSearch(e.target.value)});
+$('#f-hero').addEventListener('submit',e=>{e.preventDefault();goSearch($('#q-hero').value)});
+
+// ===================== início =====================
+$('#preview-rows').innerHTML=ATIVAS.slice().sort((a,b)=>b.meses-a.meses).slice(0,4).map(d=>rowHTML(d,{check:false})).join('');
+$('#preview-rows').onclick=e=>{const r=e.target.closest('.row');if(r){location.hash='#painel';setTimeout(()=>openDrawer(r.dataset.id),50);}};
+const CATS=[['Drilling Contractors','Perfuração de poços','Empresas que operam sondas de perfuração offshore e onshore.','9 ativas · 21 identificadas',true],['Oilfield Services','Serviços de campo','Serviços técnicos de apoio às operações em poços.','41 empresas',false],['FPSO Operations','Unidades de produção','Operação de plataformas flutuantes de produção.','14 empresas',false],['Operadoras','Exploração e produção','Empresas titulares de contratos de E&P.','14 empresas',false],['SPE Operacional','Propósito específico','Arranjos criados para contratos e ativos específicos.','16 empresas',false]];
+const optHTML=(t,c,d,k,state,badge)=>`<button class="opt ${state}" data-state="${state}"><div class="top"><span class="ic">◆</span><span class="pill ${state==='sel'?'navy':state==='off'?'grey':'teal'}" style="${state==='sel'?'background:var(--teal)':''}">${badge}</span></div><span class="t">${esc(t)}</span><span class="c">${esc(c)}</span><span class="d">${esc(d)}</span><span class="k">${esc(k)}</span></button>`;
+$('#home-cats').innerHTML=CATS.map(([t,c,d,k,on])=>optHTML(t,c,d,k,on?'':'off',on?'Explorar →':'🔒 Em breve')).join('');
+$('#home-cats').onclick=e=>{const o=e.target.closest('.opt');if(!o)return;if(o.dataset.state==='off')toast('Esta categoria entra em uma próxima versão do Sondar');else location.hash='#explorar/1';};
+
+// ===================== explorar =====================
+const STEPS=['Setor','Atividade (CNAE)','Localização','Critérios cadastrais','Categoria operacional'];
+const WZ=[
+ {t:'Escolha o setor econômico',d:'O ponto de partida é a base completa do CNPJ. Selecione o setor para delimitar as atividades econômicas consideradas.',
+  o:[['Petróleo e gás natural','CNAE · divisões 06 e 09','Extração de petróleo e gás e atividades de apoio à extração.','Disponível nesta versão',1],['Mineração','CNAE · divisões 07 e 08','Extração de minerais metálicos e não metálicos.','Em breve'],['Energia elétrica','CNAE · divisão 35','Geração, transmissão e distribuição de energia.','Em breve'],['Construção naval','CNAE · grupo 30.1','Construção de embarcações e estruturas flutuantes.','Em breve'],['Biocombustíveis','CNAE · classes 19.31 e 19.32','Fabricação de álcool e de outros biocombustíveis.','Em breve']],k:'Setor',v:'Petróleo e gás natural'},
+ {t:'Escolha a atividade econômica',d:'A Classificação Nacional de Atividades Econômicas (CNAE) organiza as empresas por subclasse. Esta versão trabalha com os prestadores de serviço de apoio à extração.',
+  o:[['Apoio à extração de petróleo e gás','CNAE 09.10-6/00','Perfuração, completação, intervenção em poços e serviços de sonda.','Disponível nesta versão',1],['Extração de petróleo e gás natural','CNAE 06.00-0/01','Operadoras titulares de contratos de exploração e produção.','Em breve'],['Refino de petróleo','CNAE 19.21-7/00','Fabricação de produtos do refino de petróleo.','Em breve'],['Transporte dutoviário','CNAE 49.40-0/00','Transporte de petróleo, gás e derivados por dutos.','Em breve'],['Processamento de gás natural','CNAE 35.20-4/01','Produção de gás e processamento de gás natural.','Em breve']],k:'Atividade',v:'09.10-6/00 · Apoio à extração',nota:'Somente a atividade econômica principal é considerada. Empresas com esta CNAE apenas como atividade secundária ficam de fora.'},
+ {t:'Escolha a localização',d:'Defina onde fica a sede das empresas. O recorte desta versão é o município do Rio de Janeiro, principal polo da indústria offshore no país.',
+  o:[['Rio de Janeiro','RJ · código RFB 6001','Capital do estado, sede da maior parte das empresas do setor.','Disponível nesta versão',1],['Macaé','RJ','Base operacional da Bacia de Campos.','Em breve'],['Niterói','RJ','Polo naval e de serviços offshore.','Em breve'],['Campos dos Goytacazes','RJ','Norte fluminense, Bacia de Campos.','Em breve'],['São João da Barra','RJ','Complexo portuário do Açu.','Em breve']],k:'Localização',v:'Rio de Janeiro (RJ)',nota:'A Receita Federal identifica o Rio de Janeiro pelo código 6001, diferente do código 3304557 usado pelo IBGE.'},
+ {t:'Critérios cadastrais e qualificação',d:'Filtros técnicos aplicados automaticamente sobre a base, seguidos de uma etapa de qualificação que remove entidades fora do perfil.',o:null,k:'Critérios',v:'Ativas · matrizes · qualificadas'},
+ {t:'Escolha a categoria operacional',d:'As 106 empresas qualificadas foram classificadas pela atuação real no setor. Esta versão do painel exibe as drilling contractors.',
+  o:[['Drilling Contractors','Perfuração de poços','Empresas que operam sondas de perfuração.','21 identificadas · 9 ativas',1],['Oilfield Services','Serviços de campo','Serviços técnicos de apoio às operações em poços.','41 empresas'],['FPSO Operations','Unidades de produção','Operação de plataformas flutuantes.','14 empresas'],['Operadoras','Exploração e produção','Titulares de contratos de E&P.','14 empresas'],['SPE Operacional','Propósito específico','Arranjos para contratos e ativos específicos.','16 empresas']],k:'Categoria',v:'Drilling Contractors'}
+];
+const SEL=[false,false,false,true,false];
+function renderWizard(n){
+ // não deixa pular etapas sem selecionar as anteriores
+ for(let i=0;i<n-1;i++){if(!SEL[i]){location.hash='#explorar/'+(i+1);return;}}
+ const s=WZ[n-1];
+ $('#stepper').innerHTML=STEPS.map((t,j)=>{const done=j<n-1,cur=j===n-1;return `<span class="stp ${done?'done':''} ${cur?'cur':''}" data-s="${j+1}"><span class="b">${done?'✓':j+1}</span>${t}</span>${j<4?`<span class="stp-line ${done?'done':''}"></span>`:''}`}).join('');
+ $('#stepper').onclick=e=>{const st=e.target.closest('.stp.done');if(st)location.hash='#explorar/'+st.dataset.s;};
+ let h=`<div class="eyebrow">Passo ${n} de 5</div><h1 class="h2" style="margin:12px 0">${s.t}</h1><p class="muted" style="font-size:15px">${s.d}</p>`;
+ if(s.o){h+=`<div class="opts">`+s.o.map(([t,c,d,k,on])=>optHTML(t,c,d,k,on?(SEL[n-1]?'sel':''):'off',on?(SEL[n-1]?'✓ Selecionado':'Disponível'):'🔒 Em breve')).join('')+`</div>`;}
+ else{const g=(title,res,items)=>`<div class="grp"><div class="gh"><b>${title}</b><span class="pill teal" style="font-size:13px;padding:4px 10px">${res}</span></div>${items.map(([a,b])=>`<div class="tg"><span class="sw"></span><span class="x"><b>${a}</b><span>${b}</span></span><span class="lock">🔒 fixo</span></div>`).join('')}</div>`;
+  h+=g('Filtros técnicos','240 estabelecimentos',[['Situação cadastral ativa','Código 02. Exclui empresas baixadas, suspensas, inaptas ou nulas.'],['Somente matrizes','Código 1. Exclui filiais e evita contar o mesmo grupo duas vezes.'],['CNAE como atividade principal','Exclui quem tem a subclasse apenas como atividade secundária.']])+
+     g('Qualificação','106 empresas',[['Excluir consórcios e SPEs','Termos na razão social: CONSORCIO, SPE, PARTICIPACOES, EMPREENDIMENTOS, FUNDO, HOLDING.'],['Excluir endereços residenciais','Termos no complemento: APARTAMENTO, APTO, APT, COBERTURA.'],['Curadoria do pesquisador','Sites corporativos, relatórios da ANP e notícias setoriais. Remove empresas periféricas.']]);}
+ if(s.nota)h+=`<div class="notice" style="margin-top:20px">${s.nota}</div>`;
+ $('#wz-main').innerHTML=h;
+ $('#wz-main').onclick=e=>{const o=e.target.closest('.opt');if(!o)return;if(o.dataset.state==='off'){toast('Opção disponível em uma próxima versão');return;}SEL[n-1]=!SEL[n-1];renderWizard(n);};
+ // lateral
+ const rows=[['Base','CNPJ · Receita Federal · maio/2026',0]];WZ.forEach((w,i)=>{if(i<n&&SEL[i])rows.push([w.k,w.v,i+1]);});
+ let res,resTxt;if(n<4){res='Calculando';resTxt='O total é calculado quando os filtros técnicos são aplicados, no passo 4.';}
+ else if(n===4){res='106';resTxt='empresas qualificadas, a partir de 240 estabelecimentos ativos';}
+ else{res=SEL[4]?'9':'106';resTxt=SEL[4]?'drilling contractors ativas, de 21 identificadas':'empresas qualificadas. Escolha a categoria.';}
+ $('#wz-side').innerHTML=`<b style="font-size:16px">Seu recorte</b>${rows.map(([k,v,st])=>`<div class="srow"><div class="k">${k}${st&&st<n?`<a class="link" style="font-size:11px" href="#explorar/${st}">Alterar</a>`:''}</div><div class="v">${v}</div></div>`).join('')}<hr><div class="k" style="font-size:11px;font-weight:700;color:var(--muted)">RESULTADO</div><div class="res ${/^\d/.test(res)?'':'txt'}">${res}</div><div class="muted" style="font-size:13px">${resTxt}</div>
+ <button class="btn primary" id="wz-next" ${SEL[n-1]?'':'disabled'}>${n===5?'Ver as 9 empresas →':'Continuar →'}</button><button class="btn" id="wz-back">${n===1?'Voltar ao início':'Voltar'}</button>`;
+ $('#wz-next').onclick=()=>{location.hash=n===5?'#painel':'#explorar/'+(n+1)};
+ $('#wz-back').onclick=()=>{location.hash=n===1?'#inicio':'#explorar/'+(n-1)};
+}
+
+// ===================== painel =====================
+const ST={view:'ativas',sort:'idade',reg:'Todas',q:''};
+const CMP=new Set();
+let map,layer,markers={},hoverId=null;
+function filtered(){let L=ST.view==='ativas'?ATIVAS.slice():D.slice();
+ if(ST.reg!=='Todas')L=L.filter(d=>d.regiao===ST.reg);
+ if(ST.q){const q=ST.q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');const qd=q.replace(/\D/g,'');L=L.filter(d=>{const s=(d.nome+' '+d.razao+' '+d.bairro).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');return s.includes(q)||(qd.length>=3&&d.cnpj.replace(/\D/g,'').includes(qd));});}
+ const st={idade:(a,b)=>b.meses-a.meses,nome:(a,b)=>a.nome.localeCompare(b.nome),bairro:(a,b)=>a.bairro.localeCompare(b.bairro)||b.meses-a.meses}[ST.sort];
+ L.sort((a,b)=>(a.status===b.status?0:a.status==='ativa'?-1:1)||st(a,b));return L;}
+function renderPainel(){
+ document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.v===ST.view));
+ $('#sort').value=ST.sort;$('#q-panel').value=ST.q;
+ const base=ST.view==='ativas'?ATIVAS:D;
+ const regs=['Todas','Centro','Zona Portuária','Zona Sul'].concat(base.some(d=>d.regiao==='Zona Oeste')?['Zona Oeste']:[]);
+ if(!regs.includes(ST.reg))ST.reg='Todas';
+ $('#chips').innerHTML=regs.map(r=>`<button class="chip ${ST.reg===r?'on':''}" data-r="${r}">${r}${r==='Todas'?'':' · '+base.filter(d=>d.regiao===r).length}</button>`).join('');
+ const L=filtered();
+ $('#rows').innerHTML=L.length?L.map(d=>rowHTML(d)).join(''):`<div class="empty">Nenhuma empresa encontrada${ST.q?` para "${esc(ST.q)}"`:''}.<br><a class="link" id="clearq">Limpar filtros</a></div>`;
+ const cq=$('#clearq');if(cq)cq.onclick=()=>{ST.q='';ST.reg='Todas';renderPainel();};
+ renderMap(L);renderTimeline(L);updateCmp();
+}
+$('#seg').onclick=e=>{const b=e.target.closest('button');if(b){ST.view=b.dataset.v;renderPainel();}};
+$('#sort').onchange=e=>{ST.sort=e.target.value;renderPainel();};
+$('#q-panel').oninput=e=>{ST.q=e.target.value;renderPainel();$('#q-panel').focus();};
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b){ST.reg=b.dataset.r;renderPainel();}};
+$('#rows').addEventListener('click',e=>{const c=e.target.closest('.chk');if(c){e.stopPropagation();toggleCmp(c.dataset.c,c.checked);return;}const r=e.target.closest('.row');if(r)openDrawer(r.dataset.id);});
+$('#rows').addEventListener('mouseover',e=>{const r=e.target.closest('.row');setHover(r?r.dataset.id:null);});
+$('#rows').addEventListener('mouseleave',()=>setHover(null));
+$('#fit').onclick=()=>fitMap(filtered());
+
+function setHover(id){if(id===hoverId)return;hoverId=id;
+ document.querySelectorAll('#rows .row').forEach(r=>r.classList.toggle('hl',r.dataset.id===id));
+ Object.entries(markers).forEach(([k,m])=>{const d=D.find(x=>x.id===k);const on=k===id;m.setStyle({radius:on?13:9,fillColor:on?'#F2A93B':(d.status==='ativa'?'#13A89E':'#A9B4BF'),weight:on?3:2});if(on)m.bringToFront();});
+ document.querySelectorAll('#tl .pt').forEach(p=>{const on=p.dataset.id===id;p.setAttribute('r',on?9:6);p.setAttribute('fill',on?'#F2A93B':p.dataset.c);});
+ const lab=document.querySelector('#tl .hoverlab');if(lab){const d=D.find(x=>x.id===id);if(d){const p=document.querySelector(`#tl .pt[data-id="${id}"]`);lab.textContent=`${d.nome} · ${d.ano}`;lab.setAttribute('x',Math.min(+p.getAttribute('cx')+12,1180));lab.setAttribute('y',+p.getAttribute('cy')-12);lab.style.display='';}else lab.style.display='none';}
+}
+
+// mapa
+function initMap(){if(map||!window.L)return;
+ map=L.map('map',{zoomControl:true,scrollWheelZoom:false,attributionControl:true});
+ map.setView([-22.925,-43.185],13);
+ layer=L.layerGroup().addTo(map);
+ useBase(0);}
+// bases de mapa sem chave de acesso; se uma falhar, passa para a próxima
+const BASES=[
+ {u:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',ref:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',a:'Base © Esri',max:16},
+ {u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',a:'Base © Esri',max:19},
+ {u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',a:'© OpenStreetMap',max:19}
+];
+let baseLayers=[],coastLayer=null;
+function useBase(i){baseLayers.forEach(l=>map.removeLayer(l));baseLayers=[];
+ if(i>=BASES.length){drawCoast();return;}
+ const b=BASES[i];let errs=0,ok=0;
+ const t=L.tileLayer(b.u,{maxZoom:b.max,attribution:b.a});
+ t.on('tileload',()=>{ok++;});
+ t.on('tileerror',()=>{errs++;if(errs>=4&&ok===0)useBase(i+1);});
+ t.addTo(map);baseLayers.push(t);
+ if(b.ref){const r=L.tileLayer(b.ref,{maxZoom:b.max,pane:'overlayPane',opacity:.9});r.addTo(map);baseLayers.push(r);}
+ // sem internet nenhum bloco carrega: desenha o contorno esquemático
+ setTimeout(()=>{if(ok===0&&i===0&&errs===0)drawCoast();},6000);
+}
+function drawCoast(){if(coastLayer)return;
+ const c=[[-22.870,-43.240],[-22.884,-43.207],[-22.891,-43.199],[-22.894,-43.190],[-22.896,-43.181],[-22.900,-43.173],[-22.905,-43.168],[-22.910,-43.164],[-22.918,-43.168],[-22.923,-43.173],[-22.932,-43.172],[-22.940,-43.170],[-22.944,-43.176],[-22.950,-43.176],[-22.952,-43.168],[-22.949,-43.160],[-22.953,-43.155],[-22.958,-43.161],[-22.962,-43.166],[-22.970,-43.177],[-22.979,-43.187],[-22.986,-43.188],[-22.988,-43.194],[-22.986,-43.206],[-22.990,-43.230],[-23.005,-43.300],[-23.012,-43.370],[-22.960,-43.420],[-22.870,-43.420]];
+ coastLayer=L.polygon(c,{color:'#fff',weight:1,fillColor:'#C9D2DC',fillOpacity:1,interactive:false}).addTo(map);coastLayer.bringToBack();
+ map.attributionControl.addAttribution('Contorno esquemático (mapa offline)');}
+function renderMap(L_){
+ if(!window.L){if(!$('.map-off'))$('.mapbox').insertAdjacentHTML('beforeend','<div class="map-off">O mapa precisa de conexão com a internet para carregar.<br>As demais funções continuam disponíveis.</div>');return;}
+ initMap();setTimeout(()=>map.invalidateSize(),0);layer.clearLayers();markers={};
+ // empresas no mesmo endereço ficam em círculo para continuarem clicáveis
+ const groups={};L_.forEach(d=>{const k=d.lat.toFixed(4)+','+d.lng.toFixed(4);(groups[k]=groups[k]||[]).push(d);});
+ Object.values(groups).forEach(g=>g.forEach((d,i)=>{let lat=d.lat,lng=d.lng;if(g.length>1){const a=2*Math.PI*i/g.length;lat+=0.0007*Math.sin(a);lng+=0.0008*Math.cos(a);}
+  const m=L.circleMarker([lat,lng],{radius:9,color:'#fff',weight:2,fillColor:d.status==='ativa'?'#13A89E':'#A9B4BF',fillOpacity:1}).addTo(layer);
+  m.bindTooltip(`<div style="display:flex;gap:8px;align-items:center">${d.logo?`<img src="${d.logo}" style="width:22px;height:22px;object-fit:contain">`:''}<div><b>${esc(d.nome)}</b><br><span style="color:#5B6B7B">${esc(d.end.split(' · ')[0])} · ${esc(d.bairro)}</span>${g.length>1?`<br><span style="color:#13A89E">${g.length} empresas neste endereço</span>`:''}</div></div>`,{className:'tip',direction:'top',offset:[0,-8]});
+  m.on('mouseover',()=>setHover(d.id));m.on('mouseout',()=>setHover(null));m.on('click',()=>openDrawer(d.id));markers[d.id]=m;}));
+ fitMap(L_);}
+function fitMap(L_){if(!map||!L_.length)return;const b=L.latLngBounds(L_.map(d=>[d.lat,d.lng]));map.fitBounds(b.pad(0.25),{maxZoom:15});}
+
+// linha do tempo
+function renderTimeline(L_){
+ const W=1280,H=250,x0=50,x1=1250,ya=Math.min(...L_.map(d=>d.ano),1980)-2,yb=today.getFullYear()+1;
+ if(!L_.length){$('#tl').innerHTML='<div class="empty">Sem empresas para exibir.</div>';return;}
+ const X=y=>x0+(y-ya)/(yb-ya)*(x1-x0),n=L_.length,Y=k=>H-40-k*((H-80)/Math.max(n,1));
+ const S=L_.slice().sort((a,b)=>a.date-b.date);const fy=d=>d.ano+(d.date.getMonth()+d.date.getDate()/31)/12;
+ let path=`M${X(ya)} ${Y(0)}`;S.forEach((d,i)=>{path+=` H${X(fy(d)).toFixed(1)} V${Y(i+1).toFixed(1)}`;});path+=` H${X(yb)}`;
+ let g='';const step=Math.max(1,Math.ceil(n/5));for(let k=0;k<=n;k+=step)g+=`<line x1="${x0}" x2="${x1}" y1="${Y(k)}" y2="${Y(k)}" stroke="#E2E7ED"/><text x="${x0-12}" y="${Y(k)+4}" font-size="11" fill="#5B6B7B" text-anchor="end">${k}</text>`;
+ for(let y=Math.ceil(ya/5)*5;y<=yb;y+=5)g+=`<text x="${X(y)}" y="${H-14}" font-size="11" fill="#5B6B7B" text-anchor="middle">${y}</text>`;
+ const x17=X(2017);g+=`<line x1="${x17}" x2="${x17}" y1="20" y2="${Y(0)}" stroke="#5B6B7B" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${x17-8}" y="30" font-size="12" font-weight="500" fill="#14202E" text-anchor="end">Abertura do mercado de E&amp;P (2017)</text>`;
+ const pts=S.map((d,i)=>{const c=d.status==='ativa'?'#13A89E':'#A9B4BF';return `<circle class="pt" data-id="${d.id}" data-c="${c}" cx="${X(fy(d)).toFixed(1)}" cy="${Y(i+1).toFixed(1)}" r="6" fill="${c}" stroke="#fff" stroke-width="2"><title>${esc(d.nome)} · ${d.abertura}</title></circle>`}).join('');
+ $('#tl').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Linha do tempo de registro">${g}<path d="${path}" fill="none" stroke="#13A89E" stroke-width="3"/>${pts}<text class="hoverlab" font-size="12" font-weight="700" fill="#B07410" style="display:none"></text></svg>`;
+ $('#tl svg').onmouseover=e=>{const p=e.target.closest('.pt');if(p)setHover(p.dataset.id);};
+ $('#tl svg').onmouseout=e=>{if(e.target.closest('.pt'))setHover(null);};
+ $('#tl svg').onclick=e=>{const p=e.target.closest('.pt');if(p)openDrawer(p.dataset.id);};
+}
+
+// detalhe
+function rankOf(d){const L=ATIVAS.slice().sort((a,b)=>b.meses-a.meses);return L.findIndex(x=>x.id===d.id)+1;}
+function openDrawer(id){const d=D.find(x=>x.id===id);if(!d)return;const ex=d.status!=='ativa';
+ const others=d.grupo?D.filter(x=>x.grupo===d.grupo&&x.id!==d.id):[];
+ const same=D.filter(x=>x.id!==d.id&&x.lat===d.lat&&x.lng===d.lng&&(!d.grupo||x.grupo!==d.grupo));
+ const kv=(k,v,c)=>`<div class="kv"><span>${k}</span><span style="${c||''}">${v}</span></div>`;
+ $('#drawer').innerHTML=`<div class="dtop"><div class="r1"><span class="eyebrow">Drilling contractor${ex?' · excluída':''}</span><button class="x" id="dclose" aria-label="Fechar">✕</button></div>
+  <div class="id">${avatar(d)}<div><h2>${esc(d.nome)}</h2><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><span class="pill" style="background:#fff;color:var(--navy)">${esc(d.bairro.toUpperCase())}</span>${ex?`<span class="pill amber">${esc(d.motivo)}</span>`:`<span class="pill" style="background:var(--teal);color:#fff">Site ativo</span>`}<span class="pill" style="background:#1C3D63;color:var(--soft)">Desde ${d.ano}</span></div></div></div></div>
+  <div class="dbody">
+   ${d.nota?`<div class="notice">${esc(d.nota)}</div>`:''}${d.obs&&!ex?`<div class="notice">${esc(d.obs)}</div>`:''}${ex&&!d.nota?`<div class="notice">Esta empresa não integra o conjunto de ativas. Motivo: ${esc(d.motivo)}.</div>`:''}${ex?'':`<div class="blk"><h4>Posição no conjunto</h4><b style="font-size:14px">${rankOf(d)}ª de ${ATIVAS.length} em tempo de registro · ${d.idade}</b><div class="track" style="height:8px;margin-top:8px"><i style="width:${Math.max(2,d.meses/MAXM*100)}%;background:var(--amber)"></i></div></div>`}
+   <div class="blk"><h4>Identificação</h4>${kv('Razão social',esc(d.razao))}${kv('CNPJ',d.cnpj)}${kv('Abertura',d.abertura)}${kv('CNAE principal','09.10-6/00')}${kv('Porte e capital social','a incorporar (base Empresas)','color:var(--grey)')}</div>
+   <div class="blk"><h4>Localização e contato</h4>${kv('Endereço',esc(d.end))}${kv('Bairro',esc(d.bairro)+(d.regiao!==d.bairro?' · '+d.regiao:''))}${kv('Telefone',d.tel)}${d.site?kv('Site',`<a class="link" href="https://${d.site}" target="_blank" rel="noopener">${d.site} ↗</a>`):kv('Site',ex?'não identificado':'ativo (verificado pelo pesquisador)',ex?'color:var(--grey)':'')}</div>
+   ${others.length?`<div class="blk"><h4>${GRUPOS[d.grupo]} no município</h4>${others.map(o=>`<div class="kv"><a class="link" data-open="${o.id}">${esc(o.razao)}</a><span>${o.status==='ativa'?'exibida no painel':esc(o.motivo)}</span></div>`).join('')}</div>`:''}
+   ${same.length?`<div class="blk"><h4>No mesmo endereço</h4>${same.map(o=>`<div class="kv"><a class="link" data-open="${o.id}">${esc(o.nome)}</a><span>${o.status==='ativa'?'ativa':esc(o.motivo)}</span></div>`).join('')}</div>`:''}
+   <div class="blk"><h4>Painel de Inovação</h4><div class="notice">Painel de Inovação: módulo futuro</div><p class="muted" style="font-size:12px;margin-top:8px">Informações públicas sobre as práticas de inovação da empresa serão incorporadas em versão futura.</p></div>
+  </div>
+  <div class="dact"><button class="btn" id="dmap">Ver no mapa</button><button class="btn" id="dcmp">${CMP.has(d.id)?'Remover da comparação':'Comparar'}</button>${d.site?`<a class="btn primary" href="https://${d.site}" target="_blank" rel="noopener">Visitar site ↗</a>`:''}</div>`;
+ $('#drawer').classList.add('on');$('#scrim').classList.add('on');$('#drawer').setAttribute('aria-hidden','false');
+ $('#dclose').onclick=closeDrawer;
+ $('#dcmp').onclick=()=>{toggleCmp(d.id,!CMP.has(d.id));openDrawer(d.id);};
+ $('#dmap').onclick=()=>{closeDrawer();if(location.hash!=='#painel'){location.hash='#painel';}setTimeout(()=>{if(map&&markers[d.id]){$('.mapbox').scrollIntoView({behavior:'smooth',block:'center'});map.setView(markers[d.id].getLatLng(),16);setHover(d.id);markers[d.id].openTooltip();}else toast('Empresa fora do filtro atual do mapa');},120);};
+ $('#drawer').querySelectorAll('[data-open]').forEach(a=>a.onclick=()=>openDrawer(a.dataset.open));
+}
+function closeDrawer(){$('#drawer').classList.remove('on');$('#scrim').classList.remove('on');$('#drawer').setAttribute('aria-hidden','true');}
+$('#scrim').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();$('#modal').classList.remove('on');}});
+
+// comparação
+function toggleCmp(id,on){if(on){if(CMP.size>=3){toast('Compare até 3 empresas por vez');renderPainel();return;}CMP.add(id);}else CMP.delete(id);updateCmp();
+ document.querySelectorAll(`.chk[data-c="${id}"]`).forEach(c=>c.checked=CMP.has(id));}
+function updateCmp(){$('#cmpcount').textContent=`${CMP.size} ${CMP.size===1?'empresa selecionada':'empresas selecionadas'}`;$('#cmpbar').classList.toggle('on',CMP.size>0);$('#cmpgo').disabled=CMP.size<2;}
+$('#cmpclear').onclick=()=>{CMP.clear();updateCmp();document.querySelectorAll('.chk').forEach(c=>c.checked=false);};
+$('#cmpgo').onclick=()=>{const L=[...CMP].map(id=>D.find(d=>d.id===id));
+ const row=(k,f)=>`<tr><th>${k}</th>${L.map(d=>`<td>${f(d)}</td>`).join('')}</tr>`;
+ $('#modalbox').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div class="h2" style="font-size:24px">Comparação</div><button class="btn" id="mclose">Fechar</button></div>
+ <table class="cmp"><tr><th></th>${L.map(d=>`<td><div style="display:flex;gap:10px;align-items:center">${avatar(d)}<b style="font-size:16px">${esc(d.nome)}</b></div></td>`).join('')}</tr>
+ ${row('Situação no painel',d=>d.status==='ativa'?'<span class="pill teal">Ativa</span>':`<span class="pill grey">${esc(d.motivo)}</span>`)}
+ ${row('Tempo de registro',d=>`<b>${d.idade}</b><div class="track" style="margin-top:6px"><i style="width:${Math.max(2,d.meses/MAXM*100)}%"></i></div>`)}
+ ${row('Abertura',d=>d.abertura)}${row('Razão social',d=>esc(d.razao))}${row('CNPJ',d=>d.cnpj)}${row('Bairro',d=>esc(d.bairro)+(d.regiao!==d.bairro?' · '+d.regiao:''))}${row('Endereço',d=>esc(d.end))}${row('Telefone',d=>d.tel)}${row('Site',d=>d.site?`<a class="link" href="https://${d.site}" target="_blank" rel="noopener">${d.site}</a>`:'<span class="muted">não identificado</span>')}
+ ${row('Grupo econômico',d=>d.grupo?GRUPOS[d.grupo]:'<span class="muted">sem outros CNPJs no município</span>')}</table>`;
+ $('#modal').classList.add('on');$('#mclose').onclick=()=>$('#modal').classList.remove('on');};
+$('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('on');};
+
+// exportação
+$('#csv').onclick=()=>{const L=filtered();const H=['nome','razao_social','cnpj','abertura','tempo_de_registro','bairro','regiao','endereco','telefone','site','situacao','motivo_exclusao'];
+ const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+ const csv='﻿'+[H.join(';')].concat(L.map(d=>[d.nome,d.razao,d.cnpj,d.abertura,d.idade,d.bairro,d.regiao,d.end,d.tel,d.site,d.status,d.motivo||''].map(q).join(';'))).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`sondar_drilling_contractors_${ST.view}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast(`${L.length} empresas exportadas`);};
+
+// ===================== metodologia =====================
+$('#fonte').innerHTML=[['Origem','Dados Abertos CNPJ · Receita Federal do Brasil'],['Conjuntos','Estabelecimentos e Empresas'],['Volume','10 partes, mais de 14 GB descomprimidos'],['Processamento','Python 3.14, leitura linha a linha (streaming)'],['Coleta','Maio de 2026'],['Junção','CNPJ básico (razão social de 100% dos registros)']].map(([k,v])=>`<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">${k}</div><div style="font-weight:500">${v}</div></div>`).join('');
+$('#funil').innerHTML=[[240,'Extração','CNAE 09.10-6/00 como atividade principal · situação ativa · matriz · município 6001'],[106,'Qualificação','Sem consórcios, SPEs e endereços residenciais · curadoria com fontes secundárias'],[21,'Classificação','Empresas classificadas como Drilling Contractor'],[9,'Verificação','Operação própria e site ativo confirmados']].map(([n,t,d],i)=>`<div class="fbar"><b style="${i===3?'color:var(--teal)':''}">${n}</b><div style="flex:1"><div class="tr"><i style="width:${Math.max(2.5,n/240*100)}%;${i===3?'background:var(--teal)':''}"></i></div><div style="margin-top:6px;font-size:13px"><b>${t}</b> <span class="muted">${d}</span></div></div></div>`).join('');
+$('#exlist').innerHTML=D.filter(d=>d.status!=='ativa').map(d=>`<div class="exrow"><a class="link" style="font-size:14px;color:var(--ink);font-weight:500" data-open="${d.id}">${esc(d.razao)}</a><span class="pill ${d.motivo.includes('recuperação')?'amber':'grey'}">${esc(d.motivo)}</span></div>`).join('');
+$('#exlist').onclick=e=>{const a=e.target.closest('[data-open]');if(a)openDrawer(a.dataset.open);};
+$('#catlist').innerHTML=[['Drilling Contractor',21,1],['Oilfield Services',41],['SPE Operacional',16],['FPSO Operations',14],['Operadora',14]].map(([l,n,on])=>`<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:14px;${on?'font-weight:600':'color:var(--grey)'}"><span>${l}${on?'':' · em breve'}</span><b style="color:${on?'var(--teal)':'var(--grey)'}">${n}</b></div><div class="track" style="height:6px;margin-top:6px"><i style="width:${n/41*100}%;background:${on?'var(--teal)':'var(--grey)'}"></i></div></div>`).join('');
+
+route();
+</script>
+</body>
+</html>
